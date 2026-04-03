@@ -24,32 +24,38 @@ install_editors() {
         command -v hx &>/dev/null || brew install helix
     else
         # Linux — download prebuilt binaries from GitHub releases (works on any distro)
-        local arch
-        arch="$(uname -m)"
+        local raw_arch
+        raw_arch="$(uname -m)"
+
+        # Neovim uses "arm64" while uname reports "aarch64"
+        local nvim_arch="$raw_arch"
+        case "$raw_arch" in
+            aarch64) nvim_arch="arm64" ;;
+        esac
 
         # Neovim
         if ! command -v nvim &>/dev/null; then
-            echo "    Downloading Neovim..."
-            local nvim_url="https://github.com/neovim/neovim/releases/download/stable/nvim-linux-${arch}.tar.gz"
+            echo "    Downloading Neovim (arch: $nvim_arch)..."
+            local nvim_url="https://github.com/neovim/neovim/releases/download/stable/nvim-linux-${nvim_arch}.tar.gz"
             curl -fsSL "$nvim_url" | tar xz -C /tmp
-            cp -r /tmp/nvim-linux-${arch}/* "$HOME/.local/"
-            rm -rf /tmp/nvim-linux-${arch}
+            cp -r /tmp/nvim-linux-${nvim_arch}/* "$HOME/.local/"
+            rm -rf /tmp/nvim-linux-${nvim_arch}
             echo "    Neovim installed to $bin_dir/nvim"
         fi
 
-        # Helix
+        # Helix — uses aarch64/x86_64 directly
         if ! command -v hx &>/dev/null; then
-            echo "    Downloading Helix..."
-            # Map arch names: x86_64 stays, aarch64 stays
+            echo "    Downloading Helix (arch: $raw_arch)..."
             local hx_tag
             hx_tag="$(curl -fsSL https://api.github.com/repos/helix-editor/helix/releases/latest | grep -o '"tag_name":"[^"]*"' | head -1 | cut -d'"' -f4)"
             local hx_version="${hx_tag}"
-            local hx_url="https://github.com/helix-editor/helix/releases/download/${hx_tag}/helix-${hx_version}-${arch}-linux.tar.xz"
+            local hx_url="https://github.com/helix-editor/helix/releases/download/${hx_tag}/helix-${hx_version}-${raw_arch}-linux.tar.xz"
             curl -fsSL "$hx_url" | tar xJ -C /tmp
-            cp /tmp/helix-${hx_version}-${arch}-linux/hx "$bin_dir/"
-            cp -r /tmp/helix-${hx_version}-${arch}-linux/runtime "$HOME/.local/lib/helix-runtime" 2>/dev/null || true
+            cp /tmp/helix-${hx_version}-${raw_arch}-linux/hx "$bin_dir/"
+            mkdir -p "$HOME/.local/lib"
+            cp -r /tmp/helix-${hx_version}-${raw_arch}-linux/runtime "$HOME/.local/lib/helix-runtime" 2>/dev/null || true
             export HELIX_RUNTIME="$HOME/.local/lib/helix-runtime"
-            rm -rf /tmp/helix-${hx_version}-${arch}-linux
+            rm -rf /tmp/helix-${hx_version}-${raw_arch}-linux
             echo "    Helix installed to $bin_dir/hx"
         fi
     fi
