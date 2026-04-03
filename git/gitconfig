@@ -1,0 +1,18 @@
+[core]
+    autocrlf = input
+    editor = nvim
+
+[pull]
+    rebase = true
+
+[push]
+    autoSetupRemote = true
+
+[diff]
+    algorithm = histogram
+
+[merge]
+    conflictstyle = zdiff3
+
+[rerere]
+    enabled = true
