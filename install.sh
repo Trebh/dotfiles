@@ -47,7 +47,7 @@ install_editors() {
         if ! command -v hx &>/dev/null; then
             echo "    Downloading Helix (arch: $raw_arch)..."
             local hx_tag
-            hx_tag="$(curl -fsSL https://api.github.com/repos/helix-editor/helix/releases/latest | grep -o '"tag_name":"[^"]*"' | head -1 | cut -d'"' -f4)"
+            hx_tag="$(curl -fsSL https://api.github.com/repos/helix-editor/helix/releases/latest | grep -oP '"tag_name":\s*"\K[^"]+')"
             local hx_version="${hx_tag}"
             local hx_url="https://github.com/helix-editor/helix/releases/download/${hx_tag}/helix-${hx_version}-${raw_arch}-linux.tar.xz"
             curl -fsSL "$hx_url" | tar xJ -C /tmp
