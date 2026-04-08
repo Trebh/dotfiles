@@ -62,7 +62,42 @@ install_editors() {
 }
 
 # ---------------------------------------------------------------------------
-# 2. Install language servers (for Helix LSP integration)
+# 2. Install lazygit
+# ---------------------------------------------------------------------------
+install_lazygit() {
+    if command -v lazygit &>/dev/null; then
+        echo "==> lazygit already installed, skipping"
+        return
+    fi
+
+    echo "==> Installing lazygit..."
+
+    if command -v brew &>/dev/null; then
+        brew install lazygit
+    else
+        local raw_arch
+        raw_arch="$(uname -m)"
+        local lg_arch="$raw_arch"
+        case "$raw_arch" in
+            aarch64) lg_arch="arm64" ;;
+            x86_64)  lg_arch="x86_64" ;;
+        esac
+
+        local lg_tag
+        lg_tag="$(curl -fsSL https://api.github.com/repos/jesseduffield/lazygit/releases/latest | grep -oP '"tag_name":\s*"\K[^"]+')"
+        local lg_version="${lg_tag#v}"
+        local lg_url="https://github.com/jesseduffield/lazygit/releases/download/${lg_tag}/lazygit_${lg_version}_Linux_${lg_arch}.tar.gz"
+
+        local bin_dir="$HOME/.local/bin"
+        mkdir -p "$bin_dir"
+        curl -fsSL "$lg_url" | tar xz -C /tmp lazygit
+        mv /tmp/lazygit "$bin_dir/"
+        echo "    lazygit installed to $bin_dir/lazygit"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# 3. Install language servers (for Helix LSP integration)
 # ---------------------------------------------------------------------------
 install_language_servers() {
     if ! command -v npm &>/dev/null; then
@@ -165,7 +200,7 @@ TOML
 }
 
 # ---------------------------------------------------------------------------
-# 3. Symlink config directories
+# 4. Symlink config directories
 # ---------------------------------------------------------------------------
 link_config() {
     local src="$1" dst="$2"
@@ -182,10 +217,16 @@ setup_configs() {
     echo "==> Linking config files..."
     link_config "$DOTFILES_DIR/config/nvim"  "$HOME/.config/nvim"
     link_config "$DOTFILES_DIR/config/helix" "$HOME/.config/helix"
+
+    if [[ "$(uname)" == "Darwin" ]]; then
+        link_config "$DOTFILES_DIR/config/lazygit" "$HOME/Library/Application Support/lazygit"
+    else
+        link_config "$DOTFILES_DIR/config/lazygit" "$HOME/.config/lazygit"
+    fi
 }
 
 # ---------------------------------------------------------------------------
-# 3. Shell setup
+# 5. Shell setup
 # ---------------------------------------------------------------------------
 setup_shell() {
     echo "==> Setting up shell aliases..."
@@ -212,7 +253,7 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
-# 4. Git config (includes, so it layers on top of existing config)
+# 6. Git config (includes, so it layers on top of existing config)
 # ---------------------------------------------------------------------------
 setup_git() {
     echo "==> Setting up git config..."
@@ -224,6 +265,7 @@ setup_git() {
 # Run
 # ---------------------------------------------------------------------------
 install_editors
+install_lazygit
 install_language_servers
 setup_configs
 setup_shell
