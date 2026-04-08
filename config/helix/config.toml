@@ -1,5 +1,12 @@
 theme = "catppuccin_macchiato"
 
+[editor]
+true-color = true
+cursorline = true
+color-modes = true
+bufferline = "multiple"
+rulers = [120]
+
 [editor.cursor-shape]
 insert = "bar"
 normal = "block"
@@ -7,3 +14,12 @@ select = "underline"
 
 [editor.file-picker]
 hidden = false
+
+[editor.lsp]
+display-inlay-hints = true
+display-messages = true
+
+[editor.indent-guides]
+render = true
+character = "│"
+skip-levels = 1

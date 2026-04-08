@@ -26,3 +26,6 @@ alias dce='docker compose exec'
 
 # PATH
 export PATH="$HOME/.local/bin:$PATH"
+
+# Helix runtime (needed when installed from prebuilt binary)
+export HELIX_RUNTIME="$HOME/.local/lib/helix-runtime"
